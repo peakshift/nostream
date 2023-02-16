@@ -177,7 +177,7 @@ export class EventMessageHandler implements IMessageHandler {
     const validRootEventRef = !!eTag
     // Maybe later we should find a more reliable way to see if the event id actually refs a story root event or not.
 
-    if (event.kind === 1 && validUrlInRTag && validRootEventRef) return true
+    if (event.kind === 1 && (validUrlInRTag || validRootEventRef)) return true
 
     return false
   }
@@ -239,10 +239,6 @@ const BF_STORY_URL_REGEX =
   /(?:http|https):\/\/(makers.bolt.fun|deploy-preview-[\d]+--makers-bolt-fun.netlify.app|makers-bolt-fun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
 
 function sendNewCommentNotification(event: Event) {
-  console.log('SUPPOSED TO SEND EVENT')
-
-  console.log(event.content)
-
   // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
   // console.log(storyUrl)
 
@@ -253,14 +249,12 @@ function sendNewCommentNotification(event: Event) {
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
   )?.[0]
-  console.log(canonical_url)
 
   if (!canonical_url) {
     throw new Error("Event tags doesn't contain canonical URL")
   }
 
   const story_id = extractStoryIdFromUrl(canonical_url)
-  console.log(story_id)
 
   const args = {
     comment: {
@@ -272,22 +266,18 @@ function sendNewCommentNotification(event: Event) {
       story_id,
     },
   }
-  console.log(args)
 
-  return axios
-    .post(
-      `${process.env.BF_QUEUE_SERVICE_URL}/add-job/new-comment-notification`,
-      args,
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            `${process.env.BF_QUEUE_SERVICE_USERNAME}:${process.env.BF_QUEUE_SERVICE_PASS}`
-          ).toString('base64')}`,
-        },
-      }
-    )
-    .then((res) => console.log(res))
-    .catch((err) => console.log(err))
+  return axios.post(
+    `${process.env.BF_QUEUE_SERVICE_URL}/add-job/new-comment-notification`,
+    args,
+    {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.BF_QUEUE_SERVICE_USERNAME}:${process.env.BF_QUEUE_SERVICE_PASS}`
+        ).toString('base64')}`,
+      },
+    }
+  )
 }
 
 function extractStoryIdFromUrl(url: string) {
