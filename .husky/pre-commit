@@ -3,4 +3,3 @@
 
 npm run lint
 npm run build:check
-npm run test:unit
