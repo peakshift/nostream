@@ -241,7 +241,11 @@ const BF_STORY_URL_REGEX =
 function sendNewCommentNotification(event: Event) {
   console.log('SUPPOSED TO SEND EVENT')
 
+  console.log(event.content)
+
   const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
+  console.log(storyUrl)
+
   if (!storyUrl) {
     throw new Error("Event doesn't contain story URL in its content")
   }
@@ -249,11 +253,14 @@ function sendNewCommentNotification(event: Event) {
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
   )?.[0]
+  console.log(canonical_url)
+
   if (!canonical_url) {
     throw new Error("Event tags doesn't contain canonical URL")
   }
 
   const story_id = extractStoryIdFromUrl(canonical_url)
+  console.log(story_id)
 
   const args = {
     comment: {
