@@ -90,8 +90,9 @@ export class EventMessageHandler implements IMessageHandler {
     const now = Math.floor(Date.now() / 1000);
     const limits = this.settings().limits.event;
 
-    if (!this.isBoltFunEvent(event))
+    if (!this.isBoltFunEvent(event)) {
       return "rejected: this relay is private & only accepts bolt.fun events.";
+    }
 
     if (
       limits.content.maxLength > 0 &&
@@ -173,7 +174,8 @@ export class EventMessageHandler implements IMessageHandler {
     )?.[1];
 
     const validUrlInRTag = BF_STORY_URL_REGEX.test(rTag ?? "");
-    const validRootEventRef = !!eTag; // Maybe later we should find a more reliable way to see if the event id actually refs a story root event or not.
+    const validRootEventRef = !!eTag;
+    // Maybe later we should find a more reliable way to see if the event id actually refs a story root event or not.
 
     if (event.kind === 1 && validUrlInRTag && validRootEventRef) return true;
 
@@ -234,7 +236,7 @@ export class EventMessageHandler implements IMessageHandler {
 }
 
 const BF_STORY_URL_REGEX =
-  /(?:http|https):\/\/(makers.bolt.fun|deploy-preview-[\d]+--makers-bolt-fun.netlify.app|makers-bolt-fun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/m;
+  /(?:http|https):\/\/(makers.bolt.fun|deploy-preview-[\d]+--makers-bolt-fun.netlify.app|makers-bolt-fun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m;
 
 function sendNewCommentNotification(event: Event) {
   console.log("SUPPOSED TO SEND EVENT");

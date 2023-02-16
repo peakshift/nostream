@@ -18,8 +18,6 @@ module.exports = {
     "@typescript-eslint/interface-name-prefix": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-    semi: ["error", "never"],
-    quotes: ["error", "single", { avoidEscape: true }],
     "sort-imports": [
       "error",
       {
@@ -38,6 +36,5 @@ module.exports = {
       },
     ],
     "comma-dangle": ["error", "always-multiline"],
-    "prettier/prettier": 2,
   },
 };
