@@ -243,12 +243,12 @@ function sendNewCommentNotification(event: Event) {
 
   console.log(event.content)
 
-  const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
-  console.log(storyUrl)
+  // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
+  // console.log(storyUrl)
 
-  if (!storyUrl) {
-    throw new Error("Event doesn't contain story URL in its content")
-  }
+  // if (!storyUrl) {
+  //   throw new Error("Event doesn't contain story URL in its content")
+  // }
 
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
@@ -266,7 +266,7 @@ function sendNewCommentNotification(event: Event) {
     comment: {
       event_id: event.id,
       canonical_url,
-      url: storyUrl,
+      url: canonical_url,
       content: event.content,
       pubkey: event.pubkey,
       story_id,
