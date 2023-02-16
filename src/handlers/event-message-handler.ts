@@ -185,8 +185,9 @@ export class EventMessageHandler implements IMessageHandler {
       event.kind === 1 &&
       clientTagBoltFun &&
       (validUrlInRTag || validRootEventRef)
-    )
+    ) {
       return true
+    }
 
     return false
   }
