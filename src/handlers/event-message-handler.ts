@@ -174,7 +174,9 @@ export class EventMessageHandler implements IMessageHandler {
     )?.[1]
 
     const clientTagBoltFun = event.tags.some(
-      (tag) => tag[0] === 'client' && tag[1] == 'makers.bolt.fun'
+      (tag) =>
+        tag[0] === 'client' &&
+        (tag[1] == 'makers.bolt.fun' || tag[1] == 'bolt.fun')
     )
 
     const validUrlInRTag = BF_STORY_URL_REGEX.test(rTag ?? '')
