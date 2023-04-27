@@ -61,7 +61,6 @@ export class App implements IRunnable {
     logCentered(`v${packageJson.version}`, width)
     logCentered(`NIPs implemented: ${packageJson.supportedNips}`, width)
     const paymentsEnabled = pathEq(['payments', 'enabled'], true, settings)
-    console.log('paymentsEnabled ', paymentsEnabled)
     logCentered(
       `Pay-to-relay ${paymentsEnabled ? 'enabled' : 'disabled'}`,
       width
