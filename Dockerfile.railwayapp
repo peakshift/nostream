@@ -74,12 +74,12 @@ WORKDIR /app
 
 COPY --from=build /build/dist .
 ADD resources /app/resources
-COPY .railwayapp/settings.yaml /app/.nostr/settings.yaml
+
+RUN mkdir -p $NOSTR_CONFIG_DIR
+COPY .railwayapp/settings.yaml $NOSTR_CONFIG_DIR/settings.yaml
 
 RUN npm install --omit=dev --quiet
 
 USER 1000:1000
-
-RUN mkdir -p $NOSTR_CONFIG_DIR
 
 CMD ["node", "src/index.js"]
