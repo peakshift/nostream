@@ -1,17 +1,25 @@
+import { Pubkey, Secret } from './base'
 import { EventKinds } from '../constants/base'
-import { Pubkey } from './base'
+import { MessageType } from './messages'
+import { SubscriptionFilter } from './subscription'
 
 export interface Info {
-  relay_url?: string
-  name?: string
-  description?: string
-  pubkey?: string
-  contact?: string
+  relay_url: string
+  name: string
+  description: string
+  pubkey: string
+  contact: string
 }
 
 export interface Network {
-  max_payload_size?: number
-  remote_ip_header?: string
+  maxPayloadSize?: number
+  remoteIpHeader?: string
+}
+
+export interface RateLimit {
+  description?: string
+  period: number
+  rate: number
 }
 
 export interface EventIdLimits {
@@ -19,6 +27,7 @@ export interface EventIdLimits {
 }
 
 export interface PubkeyLimits {
+  minBalance: bigint
   minLeadingZeroBits: number
   whitelist?: Pubkey[]
   blacklist?: Pubkey[]
@@ -26,10 +35,8 @@ export interface PubkeyLimits {
 
 export type EventKindsRange = [EventKinds, EventKinds]
 
-export interface EventRateLimit {
+export interface EventRateLimit extends RateLimit {
   kinds?: (EventKinds | [EventKinds, EventKinds])[]
-  rate: number
-  period: number
 }
 
 export interface KindLimits {
@@ -49,6 +56,11 @@ export interface CreatedAtLimits {
 }
 
 export interface ContentLimits {
+  description?: string
+  kinds?: (EventKinds | EventKindsRange)[]
+  /**
+   * Maximum number of characters allowed on events
+   */
   maxLength?: number
 }
 
@@ -62,7 +74,7 @@ export interface EventLimits {
   pubkey?: PubkeyLimits
   kind?: KindLimits
   createdAt?: CreatedAtLimits
-  content?: ContentLimits
+  content?: ContentLimits | ContentLimits[]
   rateLimits?: EventRateLimit[]
   whitelists?: EventWhitelists
 }
@@ -70,15 +82,18 @@ export interface EventLimits {
 export interface ClientSubscriptionLimits {
   maxSubscriptions?: number
   maxFilters?: number
+  maxFilterValues?: number
+  maxLimit?: number
+  minPrefixLength?: number
+  maxSubscriptionIdLength?: number
 }
 
 export interface ClientLimits {
   subscription?: ClientSubscriptionLimits
 }
 
-export interface MessageRateLimit {
-  rate: number
-  period: number
+export interface MessageRateLimit extends RateLimit {
+  type?: MessageType
 }
 
 export interface MessageLimits {
@@ -86,7 +101,20 @@ export interface MessageLimits {
   ipWhitelist?: string[]
 }
 
+export interface ConnectionLimits {
+  rateLimits: RateLimit[]
+  ipWhitelist?: string[]
+  ipBlacklist?: string[]
+}
+
+export interface InvoiceLimits {
+  rateLimits: RateLimit[]
+  ipWhitelist?: string[]
+}
+
 export interface Limits {
+  invoice?: InvoiceLimits
+  connection?: ConnectionLimits
   client?: ClientLimits
   event?: EventLimits
   message?: MessageLimits
@@ -96,9 +124,73 @@ export interface Worker {
   count: number
 }
 
-export interface ISettings {
+export interface FeeScheduleWhitelists {
+  pubkeys?: Pubkey[]
+}
+
+export interface FeeSchedule {
+  enabled: boolean
+  description?: string
+  amount: bigint
+  whitelists?: FeeScheduleWhitelists
+}
+
+export interface FeeSchedules {
+  admission: FeeSchedule[]
+  publication: FeeSchedule[]
+}
+
+export interface Payments {
+  enabled: boolean
+  processor: keyof PaymentsProcessors
+  feeSchedules: FeeSchedules
+}
+
+export interface LnurlPaymentsProcessor {
+  invoiceURL: string
+}
+
+export interface ZebedeePaymentsProcessor {
+  baseURL: string
+  callbackBaseURL: string
+  ipWhitelist: string[]
+}
+
+export interface LNbitsPaymentProcessor {
+  baseURL: string
+  callbackBaseURL: string
+}
+
+export interface PaymentsProcessors {
+  lnurl?: LnurlPaymentsProcessor,
+  zebedee?: ZebedeePaymentsProcessor
+  lnbits?: LNbitsPaymentProcessor
+}
+
+export interface Local {
+  secret: Secret
+}
+
+export interface Remote {
+  secret: Secret
+}
+
+export interface Mirror {
+  address: string
+  filters?: SubscriptionFilter[]
+  secret?: Secret
+}
+
+export interface Mirroring {
+  static?: Mirror[]
+}
+
+export interface Settings {
   info: Info
-  network?: Network
+  payments?: Payments
+  paymentsProcessors?: PaymentsProcessors
+  network: Network
   workers?: Worker
   limits?: Limits
+  mirroring?: Mirroring
 }

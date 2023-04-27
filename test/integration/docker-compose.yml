@@ -20,7 +20,7 @@ services:
       DEBUG: ""
     volumes:
       - ../../package.json:/code/package.json
-      - ../../settings.sample.json:/code/settings.sample.json
+      - ../../resources:/code/resources
       - ../../src:/code/src
       - ../../test/integration:/code/test/integration
       - ../../cucumber.js:/code/cucumber.js
@@ -57,7 +57,7 @@ services:
       retries: 0
   cache-test:
     image: redis:7.0.5-alpine3.16
-    command: redis-server --save 20 1 --loglevel warning --requirepass nostr_ts_relay_test
+    command: redis-server --loglevel warning --requirepass nostr_ts_relay_test
     networks:
       - nostream-test
     restart: always
@@ -77,7 +77,7 @@ services:
     entrypoint:
       - sh
       - -c
-      - 'cd code && npm install --no-save --quiet knex@2.3.0 pg@8.8.0 && npx knex migrate:latest'
+      - 'cd code && npm install --no-save --quiet knex@2.4.0 pg@8.8.0 && npx knex migrate:latest'
     volumes:
       - ../../migrations:/code/migrations
       - ../../knexfile.js:/code/knexfile.js

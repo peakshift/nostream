@@ -1,6 +1,7 @@
-import { EventId, Range } from './base'
+import { ContextMetadata, EventId, Range, Secret } from './base'
+import { Event, RelayedEvent } from './event'
 import { SubscriptionFilter, SubscriptionId } from './subscription'
-import { Event } from './event'
+import { ContextMetadataKey } from '../constants/base'
 
 export enum MessageType {
   REQ = 'REQ',
@@ -11,10 +12,13 @@ export enum MessageType {
   OK = 'OK'
 }
 
-export type IncomingMessage =
+export type IncomingMessage = (
   | SubscribeMessage
   | IncomingEventMessage
   | UnsubscribeMessage
+  ) & {
+    [ContextMetadataKey]?: ContextMetadata
+  }
 
 
 export type OutgoingMessage =
@@ -32,9 +36,12 @@ export type SubscribeMessage = {
 
 export type IncomingEventMessage = EventMessage & [MessageType.EVENT, Event]
 
+export type IncomingRelayedEventMessage = [MessageType.EVENT, RelayedEvent, Secret]
+
 export interface EventMessage {
   0: MessageType.EVENT
   1: Event
+  2?: Secret
 }
 
 export interface OutgoingEventMessage {

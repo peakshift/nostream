@@ -1,10 +1,7 @@
 import { Duplex, EventEmitter } from 'stream'
-import { IncomingMessage, Server, ServerResponse } from 'http'
-
-import packageJson from '../../package.json'
+import { Server } from 'http'
 
 import { createLogger } from '../factories/logger-factory'
-import { ISettings } from '../@types/settings'
 import { IWebServerAdapter } from '../@types/adapters'
 
 const debug = createLogger('web-server-adapter')
@@ -12,12 +9,10 @@ const debug = createLogger('web-server-adapter')
 export class WebServerAdapter extends EventEmitter implements IWebServerAdapter {
   public constructor(
     protected readonly webServer: Server,
-    private readonly settings: () => ISettings,
   ) {
-    debug('web server starting')
+    debug('created')
     super()
     this.webServer
-      .on('request', this.onRequest.bind(this))
       .on('error', this.onError.bind(this))
       .on('clientError', this.onClientError.bind(this))
       .once('close', this.onClose.bind(this))
@@ -33,49 +28,31 @@ export class WebServerAdapter extends EventEmitter implements IWebServerAdapter 
     debug('listening for incoming connections')
   }
 
-  private onRequest(request: IncomingMessage, response: ServerResponse) {
-    debug('request received: %O', request.headers)
-    if (request.method === 'GET' && request.headers['accept'] === 'application/nostr+json') {
-      const {
-        info: { name, description, pubkey, contact },
-      } = this.settings()
-
-      const relayInformationDocument = {
-        name,
-        description,
-        pubkey,
-        contact,
-        supported_nips: packageJson.supportedNips,
-        software: packageJson.repository.url,
-        version: packageJson.version,
-      }
-
-      response.setHeader('content-type', 'application/nostr+json')
-      response.setHeader('access-control-allow-origin', '*')
-      const body = JSON.stringify(relayInformationDocument)
-      response.end(body)
-    } else if (request.headers['upgrade'] !== 'connection') {
-      response.setHeader('content-type', 'text/plain')
-      response.end('Please use a Nostr client to connect.')
-    }
-  }
-
   private onError(error: Error) {
-    debug('error: %o', error)
-
-    throw error
+    console.error('web-server-adapter: error:', error)
   }
 
   private onClientError(error: Error, socket: Duplex) {
-    debug('socket error: %o', error)
+    console.error('web-server-adapter: client socket error:', error)
     if (error['code'] === 'ECONNRESET' || !socket.writable) {
       return
     }
     socket.end('HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n')
   }
 
+  public close(callback?: () => void): void {
+    debug('closing')
+    this.webServer.close(() => {
+      this.webServer.removeAllListeners()
+      this.removeAllListeners()
+      if (typeof callback !== 'undefined') {
+        callback()
+      }
+    })
+    debug('closed')
+  }
+
   protected onClose() {
     debug('stopped listening to incoming connections')
-    this.webServer.removeAllListeners()
   }
 }

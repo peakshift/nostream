@@ -50,6 +50,7 @@ NIPs with a relay-specific implementation are listed here.
 - [x] NIP-04: Encrypted Direct Message
 - [x] NIP-09: Event deletion
 - [x] NIP-11: Relay information document
+- [x] NIP-11a: Relay Information Document Extensions
 - [x] NIP-12: Generic tag queries
 - [x] NIP-13: Proof of Work
 - [x] NIP-15: End of Stored Events Notice
@@ -59,6 +60,7 @@ NIPs with a relay-specific implementation are listed here.
 - [x] NIP-26: Delegated Event Signing
 - [x] NIP-28: Public Chat
 - [x] NIP-33: Parameterized Replaceable Events
+- [x] NIP-40: Expiration Timestamp
 
 ## Requirements
 
@@ -81,25 +83,8 @@ Install Docker from their [official guide](https://docs.docker.com/engine/instal
 
 ## Full Guide
 
-- [Set up a Nostr relay in under 5 minutes](https://andreneves.xyz/p/set-up-a-nostr-relay-server-in-under) by [André Neves](https://twitter.com/andreneves) (CTO & Co-Founder At [ZEBEDEE](https://zebedee.io/))
-
-## Local Quick Start (Docker Compose)
-
-Install Docker Desktop following the [official guide](https://docs.docker.com/desktop/).
-You may have to uninstall Docker on your machine if you installed it using a different guide.
-
-Clone repository and enter directory:
-  ```
-  git clone git@github.com:Cameri/nostream.git
-  cd nostream
-  ```
-
-Start:
-  ```
-  ./scripts/start_local
-  ```
-
-  This will run in the foreground of the terminal until you stop it with Ctrl+C.
+- [Set up a Paid Nostr relay with Nostream and ZBD](https://andreneves.xyz/p/how-to-setup-a-paid-nostr-relay) by [André Neves](https://snort.social/p/npub1rvg76s0gz535txd9ypg2dfqv0x7a80ar6e096j3v343xdxyrt4ksmkxrck) (CTO & Co-Founder at [ZEBEDEE](https://zebedee.io/))
+- [Set up a Nostr relay in under 5 minutes](https://andreneves.xyz/p/set-up-a-nostr-relay-server-in-under) by [André Neves](https://twitter.com/andreneves) (CTO & Co-Founder at [ZEBEDEE](https://zebedee.io/))
 
 ## Quick Start (Docker Compose)
 
@@ -179,16 +164,39 @@ The logs can be viewed with:
 Set the following environment variables:
 
   ```
+  DB_URI="postgresql://postgres:postgres@localhost:5432/nostr_ts_relay_test"
+  DB_USER=postgres
+  ```
+  or
+  ```
   DB_HOST=localhost
   DB_PORT=5432
   DB_NAME=nostr_ts_relay
   DB_USER=postgres
   DB_PASSWORD=postgres
+  ```
+
+  ```
+  REDIS_URI="redis://default:nostr_ts_relay@localhost:6379"
+
   REDIS_HOST=localhost
   REDIS_PORT=6379
   REDIS_USER=default
   REDIS_PASSWORD=nostr_ts_relay
   ```
+
+If enabling payments, generate a long random secret and set SECRET:
+  You may want to use `openssl rand -hex 128` to generate a secret.
+
+  ```
+  SECRET=aaabbbccc...dddeeefff
+  # Secret shortened for brevity
+  ```
+
+In addition, if using Zebedee for payments, you must also set ZEBEDEE_API_KEY with
+an API Key from one of your projects in your Zebedee Developer Dashboard. Contact
+@foxp2zeb on Telegram or npub1rvg76s0gz535txd9ypg2dfqv0x7a80ar6e096j3v343xdxyrt4ksmkxrck on Nostr requesting
+access to the Zebedee Developer Dashboard.
 
 Create `nostr_ts_relay` database:
 
@@ -223,13 +231,14 @@ Install dependencies:
 Run migrations (at least once and after pulling new changes):
 
   ```
-  npm run db:migrate
+  NODE_OPTIONS="-r dotenv/config" npm run db:migrate
   ```
 
-Create .nostr folder inside nostream project folder:
+Create .nostr folder inside nostream project folder and copy over the settings file:
 
   ```
   mkdir .nostr
+  cp resources/default-settings.yaml .nostr/settings.yaml
   ```
 
 To start in development mode:
@@ -249,6 +258,24 @@ To clean up the build, coverage and test reports run:
   ```
   npm run clean
   ```
+## Development Quick Start (Docker Compose)
+
+Install Docker Desktop following the [official guide](https://docs.docker.com/desktop/).
+You may have to uninstall Docker on your machine if you installed it using a different guide.
+
+Clone repository and enter directory:
+  ```
+  git clone git@github.com:Cameri/nostream.git
+  cd nostream
+  ```
+
+Start:
+  ```
+  ./scripts/start_local
+  ```
+
+  This will run in the foreground of the terminal until you stop it with Ctrl+C.
+
 ## Tests
 
 ### Unit tests
@@ -315,6 +342,10 @@ Open a terminal and change to the project's directory:
 Set the following environment variables:
 
   ```
+  DB_URI="postgresql://postgres:postgres@localhost:5432/nostr_ts_relay_test"
+
+  or
+
   DB_HOST=localhost
   DB_PORT=5432
   DB_NAME=nostr_ts_relay_test
@@ -354,8 +385,7 @@ You can change the default folder by setting the `NOSTR_CONFIG_DIR` environment 
 Run nostream using one of the quick-start guides at least once and `nostream/.nostr/settings.json` will be created.
 Any changes made to the settings file will be read on the next start.
 
-A sample settings file is included at the project root under the name `settings.sample.json`. Feel free to copy it to `nostream/.nostr/settings.json`
-if you would like to have a settings file before running the relay first.
+Default settings can be found under `resources/default-settings.yaml`. Feel free to copy it to `nostream/.nostr/settings.yaml` if you would like to have a settings file before running the relay first.
 
 See [CONFIGURATION.md](CONFIGURATION.md) for a detailed explanation of each environment variable and setting.
 ## Dev Channel
@@ -375,6 +405,8 @@ I'm Cameri on most social networks. You can find me on Nostr by npub1qqqqqqyz0la
 - Kevin Smith
 - Saransh Sharma
 - swissrouting
+- André Neves
+- Semisol
 
 ## License
 

@@ -14,6 +14,9 @@ export enum EventKinds {
   CHANNEL_MUTE_USER = 44,
   CHANNEL_RESERVED_FIRST = 45,
   CHANNEL_RESERVED_LAST = 49,
+  // Relay-only
+  RELAY_INVITE = 50,
+  INVOICE_UPDATE = 402,
   // Replaceable events
   REPLACEABLE_FIRST = 10000,
   REPLACEABLE_LAST = 19999,
@@ -24,7 +27,6 @@ export enum EventKinds {
   PARAMETERIZED_REPLACEABLE_FIRST = 30000,
   PARAMETERIZED_REPLACEABLE_LAST = 39999,
   USER_APPLICATION_FIRST = 40000,
-  USER_APPLICATION_LAST = Number.MAX_SAFE_INTEGER,
 }
 
 export enum EventTags {
@@ -33,7 +35,17 @@ export enum EventTags {
   //  Multicast = 'm',
   Delegation = 'delegation',
   Deduplication = 'd',
+  Expiration = 'expiration',
+  Invoice = 'bolt11',
+}
+
+export enum PaymentsProcessors {
+  LNURL = 'lnurl',
+  ZEBEDEE = 'zebedee',
+  LNBITS = 'lnbits',
 }
 
 export const EventDelegatorMetadataKey = Symbol('Delegator')
 export const EventDeduplicationMetadataKey = Symbol('Deduplication')
+export const ContextMetadataKey = Symbol('Context')
+export const EventExpirationTimeMetadataKey = Symbol('Expiration')

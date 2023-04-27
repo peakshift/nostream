@@ -1,8 +1,7 @@
-import { EventDeduplicationMetadataKey, EventDelegatorMetadataKey, EventKinds } from '../constants/base'
-import { EventId, Pubkey, Tag } from './base'
+import { ContextMetadata, EventId, Pubkey, Tag } from './base'
+import { ContextMetadataKey, EventDeduplicationMetadataKey, EventDelegatorMetadataKey, EventExpirationTimeMetadataKey, EventKinds } from '../constants/base'
 
-
-export interface Event {
+export interface BaseEvent {
   id: EventId
   pubkey: Pubkey
   created_at: number
@@ -12,8 +11,22 @@ export interface Event {
   content: string
 }
 
+export interface Event extends BaseEvent {
+  [ContextMetadataKey]?: ContextMetadata
+}
+
+export type RelayedEvent = Event
+
+export type UnsignedEvent = Omit<Event, 'sig'>
+
+export type UnidentifiedEvent = Omit<UnsignedEvent, 'id'>
+
 export interface DelegatedEvent extends Event {
   [EventDelegatorMetadataKey]?: Pubkey
+}
+
+export interface ExpiringEvent extends Event {
+  [EventExpirationTimeMetadataKey]?: number
 }
 
 export interface ParameterizedReplaceableEvent extends Event {
@@ -33,6 +46,7 @@ export interface DBEvent {
   event_deduplication?: string | null
   first_seen: Date
   deleted_at?: Date
+  expires_at?: number
 }
 
 export interface CanonicalEvent {
