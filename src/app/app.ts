@@ -20,7 +20,7 @@ export class App implements IRunnable {
   public constructor(
     private readonly process: NodeJS.Process,
     private readonly cluster: Cluster,
-    private readonly settings: () => Settings,
+    private readonly settings: () => Settings
   ) {
     debug('starting')
 
@@ -30,8 +30,7 @@ export class App implements IRunnable {
       .on('message', this.onClusterMessage.bind(this))
       .on('exit', this.onClusterExit.bind(this))
 
-    this.process
-      .on('SIGTERM', this.onExit.bind(this))
+    this.process.on('SIGTERM', this.onExit.bind(this))
 
     debug('started')
   }
@@ -50,7 +49,9 @@ export class App implements IRunnable {
    ░   ░ ░ ░ ░ ░ ▒  ░  ░  ░    ░        ░░   ░    ░    ░   ▒   ░      ░
          ░     ░ ░        ░              ░        ░  ░     ░  ░       ░`)
     const width = 74
-    const torHiddenServicePort = process.env.HIDDEN_SERVICE_PORT ? Number(process.env.HIDDEN_SERVICE_PORT) : 80
+    const torHiddenServicePort = process.env.HIDDEN_SERVICE_PORT
+      ? Number(process.env.HIDDEN_SERVICE_PORT)
+      : 80
     const port = process.env.RELAY_PORT ? Number(process.env.RELAY_PORT) : 8008
 
     const logCentered = (input: string, width: number) => {
@@ -60,13 +61,27 @@ export class App implements IRunnable {
     logCentered(`v${packageJson.version}`, width)
     logCentered(`NIPs implemented: ${packageJson.supportedNips}`, width)
     const paymentsEnabled = pathEq(['payments', 'enabled'], true, settings)
-    logCentered(`Pay-to-relay ${paymentsEnabled ? 'enabled' : 'disabled'}`, width)
+    console.log('paymentsEnabled ', paymentsEnabled)
+    logCentered(
+      `Pay-to-relay ${paymentsEnabled ? 'enabled' : 'disabled'}`,
+      width
+    )
     if (paymentsEnabled) {
-      logCentered(`Payments provider: ${path(['payments', 'processor'], settings)}`, width)
+      logCentered(
+        `Payments provider: ${path(['payments', 'processor'], settings)}`,
+        width
+      )
     }
 
-    if (paymentsEnabled && (typeof this.process.env.SECRET !== 'string' || this.process.env.SECRET === '' || this.process.env.SECRET === 'changeme')) {
-      console.error('Please configure the secret using the SECRET environment variable.')
+    if (
+      paymentsEnabled &&
+      (typeof this.process.env.SECRET !== 'string' ||
+        this.process.env.SECRET === '' ||
+        this.process.env.SECRET === 'changeme')
+    ) {
+      console.error(
+        'Please configure the secret using the SECRET environment variable.'
+      )
       this.process.exit(1)
     }
 
@@ -108,16 +123,24 @@ export class App implements IRunnable {
     debug('settings: %O', settings)
 
     const host = `${hostname()}:${port}`
-    addOnion(torHiddenServicePort, host).then(value=>{
-      logCentered(`Tor hidden service: ${value}:${torHiddenServicePort}`, width)
-    }, () => {
-      logCentered('Tor hidden service: disabled', width)
-    })
+    addOnion(torHiddenServicePort, host).then(
+      (value) => {
+        logCentered(
+          `Tor hidden service: ${value}:${torHiddenServicePort}`,
+          width
+        )
+      },
+      () => {
+        logCentered('Tor hidden service: disabled', width)
+      }
+    )
   }
 
   private onClusterMessage(source: Worker, message: Serializable) {
     debug('message received from worker %s: %o', source.process.pid, message)
-    for (const worker of Object.values(this.cluster.workers as any) as Worker[]) {
+    for (const worker of Object.values(
+      this.cluster.workers as any
+    ) as Worker[]) {
       if (source.id === worker.id) {
         continue
       }
@@ -127,7 +150,7 @@ export class App implements IRunnable {
     }
   }
 
-  private onClusterExit(deadWorker: Worker, code: number, signal: string)  {
+  private onClusterExit(deadWorker: Worker, code: number, signal: string) {
     debug('worker %s died', deadWorker.process.pid)
 
     if (code === 0 || signal === 'SIGINT') {
