@@ -241,6 +241,10 @@ export class EventMessageHandler implements IMessageHandler {
         (tag[1] == 'makers.bolt.fun' || tag[1] == 'bolt.fun')
     )
 
+    const cTagBoltFun = event.tags.some(
+      (tag) => tag[0] === 'c' && tag[1] == 'bolt.fun'
+    )
+
     const validUrlInRTag = BF_STORY_URL_REGEX.test(rTag ?? '')
     const validRootEventRef = !!eTag
     // Maybe later we should find a more reliable way to see if the event id actually refs a story root event or not.
@@ -248,6 +252,7 @@ export class EventMessageHandler implements IMessageHandler {
     if (
       event.kind === 1 &&
       clientTagBoltFun &&
+      cTagBoltFun &&
       (validUrlInRTag || validRootEventRef)
     ) {
       return true
