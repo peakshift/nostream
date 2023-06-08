@@ -236,9 +236,7 @@ export class EventMessageHandler implements IMessageHandler {
     )?.[1]
 
     const clientTagBoltFun = event.tags.some(
-      (tag) =>
-        tag[0] === 'client' &&
-        (tag[1] == 'makers.bolt.fun' || tag[1] == 'bolt.fun')
+      (tag) => tag[0] === 'client' && tag[1] == 'bolt.fun'
     )
 
     const cTagBoltFun = event.tags.some(
@@ -386,7 +384,7 @@ export class EventMessageHandler implements IMessageHandler {
 }
 
 const BF_STORY_URL_REGEX =
-  /(?:http|https):\/\/(makers.bolt.fun|deploy-preview-[\d]+--makers-bolt-fun.netlify.app|makers-bolt-fun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
+  /(?:http|https):\/\/(bolt.fun|deploy-preview-[\d]+--boltfun.netlify.app|boltfun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
 
 function sendNewCommentNotification(event: Event) {
   // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
