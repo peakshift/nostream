@@ -416,7 +416,7 @@ function sendNewCommentNotification(event: Event) {
   }
 
   return axios.post(
-    `${process.env.BF_QUEUE_SERVICE_URL}/add-job/new-comment-notification`,
+    `${process.env.BF_QUEUE_SERVICE_URL}/add-job/notifications/new-comment`,
     args,
     {
       headers: {
