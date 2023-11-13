@@ -386,13 +386,17 @@ export class EventMessageHandler implements IMessageHandler {
 const BF_STORY_URL_REGEX =
   /(?:http|https):\/\/(bolt.fun|deploy-preview-[\d]+--boltfun.netlify.app|boltfun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
 
-function sendNewCommentNotification(event: Event) {
+const notificationsSentInLast10Seconds = new Set<string>()
+
+async function sendNewCommentNotification(event: Event) {
   // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
   // console.log(storyUrl)
 
   // if (!storyUrl) {
   //   throw new Error("Event doesn't contain story URL in its content")
   // }
+
+  if (notificationsSentInLast10Seconds.has(event.id)) return
 
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
@@ -415,7 +419,7 @@ function sendNewCommentNotification(event: Event) {
     },
   }
 
-  return axios.post(
+  const res = await axios.post(
     `${process.env.BF_QUEUE_SERVICE_URL}/add-job/notifications/new-comment`,
     args,
     {
@@ -426,6 +430,13 @@ function sendNewCommentNotification(event: Event) {
       },
     }
   )
+
+  notificationsSentInLast10Seconds.add(event.id)
+  setTimeout(() => {
+    notificationsSentInLast10Seconds.delete(event.id)
+  }, 10000)
+
+  return res
 }
 
 function extractStoryIdFromUrl(url: string) {
