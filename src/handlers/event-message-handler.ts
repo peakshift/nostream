@@ -386,7 +386,7 @@ export class EventMessageHandler implements IMessageHandler {
 const BF_STORY_URL_REGEX =
   /(?:http|https):\/\/(bolt.fun|deploy-preview-[\d]+--boltfun.netlify.app|boltfun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
 
-const notificationsSentInLast10Seconds = new Set<string>()
+const notificationsSentInLastMinute = new Set<string>()
 
 async function sendNewCommentNotification(event: Event) {
   // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
@@ -396,7 +396,7 @@ async function sendNewCommentNotification(event: Event) {
   //   throw new Error("Event doesn't contain story URL in its content")
   // }
 
-  if (notificationsSentInLast10Seconds.has(event.id)) return
+  if (notificationsSentInLastMinute.has(event.id)) return
 
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
@@ -419,24 +419,29 @@ async function sendNewCommentNotification(event: Event) {
     },
   }
 
-  const res = await axios.post(
-    `${process.env.BF_QUEUE_SERVICE_URL}/add-job/notifications/new-comment`,
-    args,
-    {
-      headers: {
-        Authorization: `Basic ${Buffer.from(
-          `${process.env.BF_QUEUE_SERVICE_USERNAME}:${process.env.BF_QUEUE_SERVICE_PASS}`
-        ).toString('base64')}`,
-      },
-    }
-  )
+  notificationsSentInLastMinute.add(event.id)
+  try {
+    const res = await axios.post(
+      `${process.env.BF_QUEUE_SERVICE_URL}/add-job/notifications/new-comment`,
+      args,
+      {
+        headers: {
+          Authorization: `Basic ${Buffer.from(
+            `${process.env.BF_QUEUE_SERVICE_USERNAME}:${process.env.BF_QUEUE_SERVICE_PASS}`
+          ).toString('base64')}`,
+        },
+      }
+    )
 
-  notificationsSentInLast10Seconds.add(event.id)
-  setTimeout(() => {
-    notificationsSentInLast10Seconds.delete(event.id)
-  }, 10000)
+    setTimeout(() => {
+      notificationsSentInLastMinute.delete(event.id)
+    }, 60 * 1000)
 
-  return res
+    return res
+  } catch (error) {
+    console.error('Error sending new comment notification', error)
+    notificationsSentInLastMinute.delete(event.id)
+  }
 }
 
 function extractStoryIdFromUrl(url: string) {
