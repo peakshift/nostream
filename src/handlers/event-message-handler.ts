@@ -386,7 +386,7 @@ export class EventMessageHandler implements IMessageHandler {
 const BF_STORY_URL_REGEX =
   /(?:http|https):\/\/(bolt.fun|deploy-preview-[\d]+--boltfun.netlify.app|boltfun-preview.netlify.app|localhost:3000)\/story\/([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])/m
 
-const notificationsSentInLastMinute = new Set<string>()
+const notificationsSentInLastHour = new Set<string>()
 
 async function sendNewCommentNotification(event: Event) {
   // const storyUrl = BF_STORY_URL_REGEX.exec(event.content)?.[0]
@@ -396,7 +396,7 @@ async function sendNewCommentNotification(event: Event) {
   //   throw new Error("Event doesn't contain story URL in its content")
   // }
 
-  if (notificationsSentInLastMinute.has(event.id)) return
+  if (notificationsSentInLastHour.has(event.id)) return
 
   const canonical_url = BF_STORY_URL_REGEX.exec(
     event.tags.find((tag) => tag[0] === 'r')?.[1] ?? ''
@@ -419,7 +419,7 @@ async function sendNewCommentNotification(event: Event) {
     },
   }
 
-  notificationsSentInLastMinute.add(event.id)
+  notificationsSentInLastHour.add(event.id)
   try {
     const res = await axios.post(
       `${process.env.BF_QUEUE_SERVICE_URL}/add-job/notifications/new-comment`,
@@ -434,13 +434,13 @@ async function sendNewCommentNotification(event: Event) {
     )
 
     setTimeout(() => {
-      notificationsSentInLastMinute.delete(event.id)
-    }, 60 * 1000)
+      notificationsSentInLastHour.delete(event.id)
+    }, 60 * 60 * 1000)
 
     return res
   } catch (error) {
     console.error('Error sending new comment notification', error)
-    notificationsSentInLastMinute.delete(event.id)
+    notificationsSentInLastHour.delete(event.id)
   }
 }
 
